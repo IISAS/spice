@@ -1,0 +1,6 @@
+create clients
+create truststore.jks to store certs of the trusted kafka brokers
+use this jks with client
+
+bin/kafka-topics.sh --create --topic quickstart-events --bootstrap-server spice-kafka-1.stevo.fedcloud.eu:9093 --command-config spice-client-alpha.properties 
+

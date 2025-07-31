@@ -1,0 +1,836 @@
+services:
+  kafka-controller-1:
+    image: apache/kafka:4.0.0
+    container_name: spice-iisas-kafka-controller-1
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENERS: 'CONTROLLER://:9092'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+    networks:
+      kafka:
+  kafka-controller-2:
+    image: apache/kafka:4.0.0
+    container_name: spice-iisas-kafka-controller-2
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: 'controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENERS: 'CONTROLLER://:9092'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+    networks:
+      kafka:
+  kafka-controller-3:
+    image: apache/kafka:4.0.0
+    container_name: spice-iisas-kafka-controller-3
+    environment:
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: 'controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENERS: 'CONTROLLER://:9092'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+    networks:
+      kafka:
+  kafka-controller-4:
+    image: apache/kafka:4.0.0
+    container_name: spice-iisas-kafka-controller-4
+    environment:
+      KAFKA_NODE_ID: 4
+      KAFKA_PROCESS_ROLES: 'controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENERS: 'CONTROLLER://:9092'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+    networks:
+      kafka:
+  kafka-controller-5:
+    image: apache/kafka:4.0.0
+    container_name: spice-iisas-kafka-controller-5
+    environment:
+      KAFKA_NODE_ID: 5
+      KAFKA_PROCESS_ROLES: 'controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENERS: 'CONTROLLER://:9092'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+    networks:
+      kafka:
+  kafka-broker-1:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-1.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-1
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-1/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 6
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-1:19093,SSL://spice-iisas-kafka-broker-1.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-1.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-1.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-1.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-1.rule=HostSNI(`spice-iisas-kafka-broker-1.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-1.service=spice-iisas-kafka-broker-1-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-1-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-1"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-2:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-2.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-2
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-2/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 7
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-2:19093,SSL://spice-iisas-kafka-broker-2.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-2.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-2.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-2.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-2.rule=HostSNI(`spice-iisas-kafka-broker-2.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-2.service=spice-iisas-kafka-broker-2-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-2-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-2"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-3:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-3.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-3
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-3/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 8
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-3:19093,SSL://spice-iisas-kafka-broker-3.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-3.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-3.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-3.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-3.rule=HostSNI(`spice-iisas-kafka-broker-3.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-3.service=spice-iisas-kafka-broker-3-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-3-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-3"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-4:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-4.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-4
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-4/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 9
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-4:19093,SSL://spice-iisas-kafka-broker-4.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-4.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-4.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-4.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-4.rule=HostSNI(`spice-iisas-kafka-broker-4.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-4.service=spice-iisas-kafka-broker-4-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-4-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-4"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-5:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-5.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-5
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-5/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 10
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-5:19093,SSL://spice-iisas-kafka-broker-5.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-5.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-5.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-5.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-5.rule=HostSNI(`spice-iisas-kafka-broker-5.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-5.service=spice-iisas-kafka-broker-5-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-5-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-5"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-6:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-6.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-6
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-6/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 11
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-6:19093,SSL://spice-iisas-kafka-broker-6.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-6.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-6.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-6.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-6.rule=HostSNI(`spice-iisas-kafka-broker-6.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-6.service=spice-iisas-kafka-broker-6-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-6-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-6"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-7:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-7.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-7
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-7/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 12
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-7:19093,SSL://spice-iisas-kafka-broker-7.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-7.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-7.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-7.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-7.rule=HostSNI(`spice-iisas-kafka-broker-7.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-7.service=spice-iisas-kafka-broker-7-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-7-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-7"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-8:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-8.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-8
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-8/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 13
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-8:19093,SSL://spice-iisas-kafka-broker-8.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-8.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-8.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-8.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-8.rule=HostSNI(`spice-iisas-kafka-broker-8.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-8.service=spice-iisas-kafka-broker-8-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-8-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-8"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-9:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-9.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-9
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-9/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 14
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-9:19093,SSL://spice-iisas-kafka-broker-9.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-9.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-9.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-9.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-9.rule=HostSNI(`spice-iisas-kafka-broker-9.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-9.service=spice-iisas-kafka-broker-9-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-9-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-9"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-10:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-10.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-10
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-10/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 15
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-10:19093,SSL://spice-iisas-kafka-broker-10.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-10.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-10.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-10.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-10.rule=HostSNI(`spice-iisas-kafka-broker-10.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-10.service=spice-iisas-kafka-broker-10-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-10-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-10"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-11:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-11.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-11
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-11/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 16
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-11:19093,SSL://spice-iisas-kafka-broker-11.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-11.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-11.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-11.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-11.rule=HostSNI(`spice-iisas-kafka-broker-11.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-11.service=spice-iisas-kafka-broker-11-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-11-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-11"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-12:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-12.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-12
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-12/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 17
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-12:19093,SSL://spice-iisas-kafka-broker-12.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-12.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-12.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-12.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-12.rule=HostSNI(`spice-iisas-kafka-broker-12.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-12.service=spice-iisas-kafka-broker-12-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-12-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-12"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-13:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-13.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-13
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-13/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 18
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-13:19093,SSL://spice-iisas-kafka-broker-13.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-13.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-13.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-13.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-13.rule=HostSNI(`spice-iisas-kafka-broker-13.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-13.service=spice-iisas-kafka-broker-13-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-13-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-13"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-14:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-14.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-14
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-14/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 19
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-14:19093,SSL://spice-iisas-kafka-broker-14.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-14.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-14.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-14.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-14.rule=HostSNI(`spice-iisas-kafka-broker-14.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-14.service=spice-iisas-kafka-broker-14-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-14-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-14"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
+  kafka-broker-15:
+    image: apache/kafka:4.0.0
+    hostname: spice-iisas-kafka-broker-15.stevo.fedcloud.eu
+    container_name: spice-iisas-kafka-broker-15
+    volumes:
+      - /mnt/data/workspace/SPICE/workspace/deployments/spice-iisas/kafka/volumes/spice-iisas-kafka-broker-15/secrets:/etc/kafka/secrets
+    environment:
+      KAFKA_NODE_ID: 20
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'SSL:SSL,CONTROLLER:PLAINTEXT,SSL-INTERNAL:SSL'
+      KAFKA_LISTENERS: 'SSL-INTERNAL://:19093,SSL://:9093'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@spice-iisas-kafka-controller-1:9092,2@spice-iisas-kafka-controller-2:9092,3@spice-iisas-kafka-controller-3:9092,4@spice-iisas-kafka-controller-4:9092,5@spice-iisas-kafka-controller-5:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'SSL-INTERNAL'
+      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ADVERTISED_LISTENERS: 'SSL-INTERNAL://spice-iisas-kafka-broker-15:19093,SSL://spice-iisas-kafka-broker-15.stevo.fedcloud.eu:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: ssl_key_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=reverse_proxy"
+      - "traefik.docker.network=reverse_proxy"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-15.tls=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-15.entrypoints=kafka-tls"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-15.tls.passthrough=true"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-15.rule=HostSNI(`spice-iisas-kafka-broker-15.stevo.fedcloud.eu`)"
+      - "traefik.tcp.routers.spice-iisas-kafka-broker-15.service=spice-iisas-kafka-broker-15-service"
+      - "traefik.tcp.services.spice-iisas-kafka-broker-15-service.loadbalancer.server.port=9093"
+    networks:
+      kafka:
+      reverse_proxy:
+        aliases:
+          - "spice-iisas-kafka-broker-15"
+    depends_on:
+      - kafka-controller-1
+      - kafka-controller-2
+      - kafka-controller-3
+      - kafka-controller-4
+      - kafka-controller-5
