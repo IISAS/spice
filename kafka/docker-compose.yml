@@ -15,7 +15,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     networks:
-      kafka:
+      kafka-network:
   kafka-controller-2:
     image: apache/kafka:4.0.0
     container_name: spice-iisas-kafka-controller-2
@@ -32,7 +32,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     networks:
-      kafka:
+      kafka-network:
   kafka-controller-3:
     image: apache/kafka:4.0.0
     container_name: spice-iisas-kafka-controller-3
@@ -49,7 +49,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     networks:
-      kafka:
+      kafka-network:
   kafka-controller-4:
     image: apache/kafka:4.0.0
     container_name: spice-iisas-kafka-controller-4
@@ -66,7 +66,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     networks:
-      kafka:
+      kafka-network:
   kafka-controller-5:
     image: apache/kafka:4.0.0
     container_name: spice-iisas-kafka-controller-5
@@ -83,7 +83,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     networks:
-      kafka:
+      kafka-network:
   kafka-broker-1:
     image: apache/kafka:4.0.0
     hostname: spice-iisas-kafka-broker-1.stevo.fedcloud.eu
@@ -124,8 +124,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-1.service=spice-iisas-kafka-broker-1-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-1-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-1"
     depends_on:
@@ -174,8 +174,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-2.service=spice-iisas-kafka-broker-2-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-2-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-2"
     depends_on:
@@ -224,8 +224,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-3.service=spice-iisas-kafka-broker-3-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-3-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-3"
     depends_on:
@@ -274,8 +274,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-4.service=spice-iisas-kafka-broker-4-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-4-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-4"
     depends_on:
@@ -324,8 +324,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-5.service=spice-iisas-kafka-broker-5-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-5-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-5"
     depends_on:
@@ -374,8 +374,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-6.service=spice-iisas-kafka-broker-6-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-6-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-6"
     depends_on:
@@ -424,8 +424,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-7.service=spice-iisas-kafka-broker-7-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-7-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-7"
     depends_on:
@@ -474,8 +474,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-8.service=spice-iisas-kafka-broker-8-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-8-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-8"
     depends_on:
@@ -524,8 +524,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-9.service=spice-iisas-kafka-broker-9-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-9-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-9"
     depends_on:
@@ -574,8 +574,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-10.service=spice-iisas-kafka-broker-10-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-10-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-10"
     depends_on:
@@ -624,8 +624,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-11.service=spice-iisas-kafka-broker-11-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-11-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-11"
     depends_on:
@@ -674,8 +674,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-12.service=spice-iisas-kafka-broker-12-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-12-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-12"
     depends_on:
@@ -724,8 +724,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-13.service=spice-iisas-kafka-broker-13-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-13-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-13"
     depends_on:
@@ -774,8 +774,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-14.service=spice-iisas-kafka-broker-14-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-14-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-14"
     depends_on:
@@ -824,8 +824,8 @@ services:
       - "traefik.tcp.routers.spice-iisas-kafka-broker-15.service=spice-iisas-kafka-broker-15-service"
       - "traefik.tcp.services.spice-iisas-kafka-broker-15-service.loadbalancer.server.port=9093"
     networks:
-      kafka:
-      reverse_proxy:
+      kafka-network:
+      traefik-network:
         aliases:
           - "spice-iisas-kafka-broker-15"
     depends_on:
@@ -834,3 +834,7 @@ services:
       - kafka-controller-3
       - kafka-controller-4
       - kafka-controller-5
+networks:
+  traefik-network:
+    name: "reverse_proxy"
+    external: true
