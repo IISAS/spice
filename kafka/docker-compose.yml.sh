@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+cd ${SCRIPT_DIR}
+
 set -a
+source ../.env
 source .env
 set +a
-
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 function get_KAFKA_CONROLLER_QUORUM_VOTERS() {
   voters=''
@@ -42,7 +44,7 @@ function provision_controller_service() {
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     networks:
-      kafka:
+      kafka-network:
 EOF
 }
 
@@ -84,7 +86,7 @@ function provision_broker_service() {
     labels:
       - "traefik.enable=true"
       - "traefik_instance=${TRAEFIK_INSTANCE}"
-      - "traefik.docker.network=${TRAEFIK_DOCKER_NETWORK}"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
       - "traefik.tcp.routers.${broker_name}.tls=true"
       - "traefik.tcp.routers.${broker_name}.entrypoints=${TRAEFIK_ENTRYPOINT_KAFKA_TLS}"
       - "traefik.tcp.routers.${broker_name}.tls.passthrough=true"
@@ -92,8 +94,8 @@ function provision_broker_service() {
       - "traefik.tcp.routers.${broker_name}.service=${broker_name}-service"
       - "traefik.tcp.services.${broker_name}-service.loadbalancer.server.port=${KAFKA_PORT_BROKER}"
     networks:
-      kafka:
-      ${TRAEFIK_DOCKER_NETWORK}:
+      kafka-network:
+      traefik-network:
         aliases:
           - "${broker_name}"
     depends_on:
@@ -122,3 +124,10 @@ for i in `seq ${KAFKA_NUM_BROKERS}`; do
   provision_broker_service ${node_id} ${i}
   node_id=$((node_id + 1))
 done
+
+cat <<EOF
+networks:
+  traefik-network:
+    name: "${TRAEFIK_NETWORK}"
+    external: true
+EOF

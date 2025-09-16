@@ -17,9 +17,16 @@
 name: ${NAME}
 
 networks:
-  reverse_proxy:
-    name: reverse_proxy
+  traefik-network:
+    name: "${TRAEFIK_NETWORK}"
     external: true
-  kafka:
-    name: "${DOCKER_NAMESPACE}kafka"
+  airflow-network:
+    name: "${DOCKER_NAMESPACE}airflow-network"
     driver: bridge
+  domino-network:
+    name: "${DOCKER_NAMESPACE}domino-network"
+    driver: bridge
+  kafka-network:
+    name: "${DOCKER_NAMESPACE}kafka-network"
+    driver: bridge
+

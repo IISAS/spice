@@ -1,0 +1,131 @@
+services:
+  # Domino REST Api
+  domino-rest:
+    # image: ghcr.io/tauffer-consulting/domino-rest:latest
+    build:
+      context: ${DOMINO_HOME:-./domino}/rest
+      dockerfile: Dockerfile
+    container_name: "${DOCKER_NAMESPACE}domino-rest"
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=${TRAEFIK_INSTANCE}"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.http.routers.${DOCKER_NAMESPACE}domino-rest.entrypoints=${TRAEFIK_ENTRYPOINT_WEBSECURE}"
+      - "traefik.http.routers.${DOCKER_NAMESPACE}domino-rest.rule=Host(`${NAME}.${HOSTNAME}`) && PathPrefix(`/domino-rest`)"
+      - "traefik.http.routers.${DOCKER_NAMESPACE}domino-rest.service=${DOCKER_NAMESPACE}domino-rest"
+      - "traefik.http.routers.${DOCKER_NAMESPACE}domino-rest.middlewares=${DOCKER_NAMESPACE}domino-rest-strip-prefix"
+      - "traefik.http.services.${DOCKER_NAMESPACE}domino-rest.loadbalancer.server.url=http://${DOCKER_NAMESPACE}domino-rest"
+      - "traefik.http.services.${DOCKER_NAMESPACE}domino-rest.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.${DOCKER_NAMESPACE}domino-rest-strip-prefix.stripprefix.prefixes=/domino-rest"
+    command: bash -c "alembic upgrade heads && uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000"
+    environment:
+      - DOMINO_DB_USER=postgres
+      - DOMINO_DB_PASSWORD=postgres
+      - DOMINO_DB_HOST=domino-postgres
+      - DOMINO_DB_PORT=5432
+      - DOMINO_DB_NAME=postgres
+      - DOMINO_DEFAULT_PIECES_REPOSITORY_VERSION=0.6.0
+      - DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN=${DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN}
+      - DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS=${DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS}
+      - DOMINO_GITHUB_WORKFLOWS_REPOSITORY=${DOMINO_GITHUB_WORKFLOWS_REPOSITORY}
+      - CREATE_DEFAULT_USER=true
+      - DOMINO_DEPLOY_MODE=${DOMINO_DEPLOY_MODE:-local-compose}
+      - AIRFLOW_API_HOST=http://${DOCKER_NAMESPACE}airflow-apiserver:8080/airflow
+      - AIRFLOW_ADMIN_USERNAME=${_AIRFLOW_WWW_USER_USERNAME:-admin}
+      - AIRFLOW_ADMIN_PASSWORD=${_AIRFLOW_WWW_USER_PASSWORD:-admin}
+    networks:
+      - traefik-network
+      - domino-postgres-network
+      - airflow-network
+      - domino-network
+    volumes:
+      - ${DOMINO_HOME:-./domino}/rest/:/rest # Enable hot reload for backend
+      - ${AIRFLOW_PROJ_DIR:-../airflow}/dags:/opt/airflow/dags
+    depends_on:
+      airflow-apiserver:
+        condition: service_healthy
+      domino-postgres:
+        condition: service_healthy
+
+  # Domino Postgres
+  domino-postgres:
+    image: postgres:13
+    container_name: "${DOCKER_NAMESPACE}domino-postgres"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - domino-postgres-volume:/var/lib/postgresql/data
+    networks:
+      - domino-postgres-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"
+        ]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 2s
+    restart: always
+
+  # Domino Frontend
+  domino-frontend:
+    #image: ghcr.io/tauffer-consulting/domino-frontend:compose
+    build:
+      context: ${DOMINO_HOME:-./domino}/frontend
+      dockerfile: Dockerfile.dev
+    container_name: "${DOCKER_NAMESPACE}domino-frontend"
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=${TRAEFIK_INSTANCE}"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.http.routers.${DOCKER_NAMESPACE}domino-frontend.entrypoints=${TRAEFIK_ENTRYPOINT_WEBSECURE}"
+      - "traefik.http.routers.${DOCKER_NAMESPACE}domino-frontend.rule=Host(`${NAME}.${HOSTNAME}`) && PathPrefix(`/domino`)"
+      - "traefik.http.routers.${DOCKER_NAMESPACE}domino-frontend.service=${DOCKER_NAMESPACE}domino-frontend"
+      #- "traefik.http.routers.${DOCKER_NAMESPACE}domino-frontend.middlewares=${DOCKER_NAMESPACE}domino-frontend-strip-prefix"
+      - "traefik.http.services.${DOCKER_NAMESPACE}domino-frontend.loadbalancer.server.url=http://${DOCKER_NAMESPACE}domino-frontend"
+      - "traefik.http.services.${DOCKER_NAMESPACE}domino-frontend.loadbalancer.server.port=3000"
+      #- "traefik.http.middlewares.${DOCKER_NAMESPACE}domino-frontend-strip-prefix.stripprefix.prefixes=/domino"
+    command: pnpm debug
+    environment:
+      - DOMINO_DEPLOY_MODE=${DOMINO_DEPLOY_MODE:-local-compose}
+      - API_URL=https://${NAME}.${HOSTNAME}/domino-rest
+      - BASENAME=/domino
+    volumes:
+      - ${DOMINO_HOME:-./domino}/frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - traefik-network
+      - domino-network
+    depends_on:
+      domino-rest:
+        condition: service_started
+
+  # Domino Docker Proxy
+  docker-proxy:
+    image: alpine/socat
+    container_name: "${DOCKER_NAMESPACE}domino-docker-proxy"
+    command: "TCP4-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - domino-network
+      - airflow-network
+
+volumes:
+  postgres-db-volume: null
+  domino-postgres-volume: null
+
+networks:
+  traefik-network:
+    name: "${TRAEFIK_NETWORK}"
+    external: true
+  domino-network:
+    name: "${DOCKER_NAMESPACE}domino-network"
+    driver: bridge
+  domino-postgres-network:
+    name: "${DOCKER_NAMESPACE}domino-postgres-network"
+    driver: bridge
