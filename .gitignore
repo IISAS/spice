@@ -1,3 +1,12 @@
 *.swp
+*.pem
+*.pyc
+
+/airflow/dags
+/airflow/logs
+
+/domino/domino_data
 
 /kafka/ca/*.pem
+/kafka/clients/**/*
+/kafka/volumes
