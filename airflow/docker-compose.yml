@@ -55,6 +55,8 @@ x-airflow-common:
     dockerfile: "${AIRFLOW_DOCKERFILE}"
   environment:
     &airflow-common-env
+    # AIRFLOW__API__BASE_URL: "https://${NAME}.${HOSTNAME}/airflow"
+    AIRFLOW__API__BASE_URL: "http://${DOCKER_NAMESPACE}airflow-apiserver:8080/airflow"
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
@@ -63,7 +65,7 @@ x-airflow-common:
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'true'
-    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://${DOCKER_NAMESPACE}airflow-apiserver:8080/airflow/execution/'
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
@@ -137,7 +139,6 @@ services:
     container_name: "${DOCKER_NAMESPACE}airflow-apiserver"
     environment:
       <<: *airflow-common-env
-      AIRFLOW__API__BASE_URL: "https://${NAME}.${HOSTNAME}/airflow"
     labels:
       - "traefik.enable=true"
       - "traefik_instance=${TRAEFIK_INSTANCE}"
@@ -145,9 +146,7 @@ services:
       - "traefik.http.routers.${DOCKER_NAMESPACE}airflow-apiserver.entrypoints=${TRAEFIK_ENTRYPOINT_WEBSECURE}"
       - "traefik.http.routers.${DOCKER_NAMESPACE}airflow-apiserver.rule=Host(`${NAME}.${HOSTNAME}`) && PathPrefix(`/airflow`)"
       - "traefik.http.routers.${DOCKER_NAMESPACE}airflow-apiserver.service=${DOCKER_NAMESPACE}airflow-apiserver"
-      #- "traefik.http.routers.${DOCKER_NAMESPACE}airflow-apiserver.middlewares=${DOCKER_NAMESPACE}airflow-strip-prefix"
       - "traefik.http.services.${DOCKER_NAMESPACE}airflow-apiserver.loadbalancer.server.url=http://${DOCKER_NAMESPACE}airflow-apiserver:8080"
-      #- "traefik.http.middlewares.${DOCKER_NAMESPACE}airflow-strip-prefix.stripprefix.prefixes=/airflow"
     command: api-server
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
@@ -200,9 +199,9 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-  airflow-worker:
+  airflow-domino-worker:
     <<: *airflow-common
-    container_name: "${DOCKER_NAMESPACE}airflow-worker"
+    container_name: "${DOCKER_NAMESPACE}airflow-domino-worker"
     command: celery worker
     healthcheck:
       # yamllint disable rule:line-length
@@ -240,7 +239,7 @@ services:
       start_period: 30s
     restart: always
     networks:
-      airflow-network:
+      - airflow-network
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -365,20 +364,34 @@ services:
   flower:
     <<: *airflow-common
     container_name: "${DOCKER_NAMESPACE}airflow-flower"
-    command: celery flower
+    labels:
+      - "traefik.enable=true"
+      - "traefik_instance=${TRAEFIK_INSTANCE}"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.http.routers.${DOCKER_NAMESPACE}airflow-flower.entrypoints=${TRAEFIK_ENTRYPOINT_WEBSECURE}"
+      - "traefik.http.routers.${DOCKER_NAMESPACE}airflow-flower.rule=Host(`${NAME}.${HOSTNAME}`) && PathPrefix(`/flower`)"
+      # Middleware to add trailing slash if missing
+      - "traefik.http.middlewares.${DOCKER_NAMESPACE}airflow-flower-addslash.redirectregex.regex=^https?://(?:[^/]+)(/flower)$$"
+      - "traefik.http.middlewares.${DOCKER_NAMESPACE}airflow-flower-addslash.redirectregex.replacement=$${1}/"
+      - "traefik.http.middlewares.${DOCKER_NAMESPACE}airflow-flower-addslash.redirectregex.permanent=true"
+      # Attach middleware to router (redirect first)
+      - "traefik.http.routers.${DOCKER_NAMESPACE}airflow-flower.middlewares=${DOCKER_NAMESPACE}airflow-flower-addslash"
+      - "traefik.http.routers.${DOCKER_NAMESPACE}airflow-flower.service=${DOCKER_NAMESPACE}airflow-flower"
+      - "traefik.http.services.${DOCKER_NAMESPACE}airflow-flower.loadbalancer.server.url=http://${DOCKER_NAMESPACE}airflow-flower:5555"
+    command: celery flower --url-prefix=flower --basic-auth=user1:password1,user2:password2
+    #hostname: ${DOCKER_NAMESPACE}airflow-flower
     profiles:
       - flower
-    ports:
-      - "5555:5555"
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
+      test: ["CMD", "curl", "--fail", "-u", "user1:password1", "http://localhost:5555/flower/"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 30s
     restart: always
     networks:
-      airflow-network:
+      - airflow-network
+      - traefik-network
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
