@@ -139,6 +139,7 @@ services:
     container_name: "${DOCKER_NAMESPACE}airflow-apiserver"
     environment:
       <<: *airflow-common-env
+      AIRFLOW__API__BASE_URL: "https://${NAME}.${HOSTNAME}/airflow"
     labels:
       - "traefik.enable=true"
       - "traefik_instance=${TRAEFIK_INSTANCE}"
