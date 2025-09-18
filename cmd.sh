@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 docker compose \
+  --profile flower \
   --env-file airflow/.env \
   --env-file domino/.env \
   --env-file kafka/.env \
