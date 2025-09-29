@@ -5,6 +5,9 @@
 /airflow/dags
 /airflow/logs
 
+/ca/certs
+/ca/volumes
+
 /domino/domino_data
 
 /kafka/ca/*.pem
