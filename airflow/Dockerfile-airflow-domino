@@ -1,0 +1,26 @@
+FROM apache/airflow:3.0.6-python3.12
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+USER root
+
+RUN apt-get update
+RUN apt-get install git nano -y
+
+RUN set -eux; \
+  apt-get install -y gosu; \
+  # verify that the binary works
+  gosu nobody true
+
+USER airflow
+
+RUN pip install --upgrade pip
+
+WORKDIR /opt/airflow/domino
+RUN git clone -b spice-airflow-3.0.6 --single-branch https://github.com/IISAS/domino.git domino_py
+
+WORKDIR /opt/airflow/domino/domino_py
+RUN pip install -e .[airflow] --no-deps
+
+WORKDIR /opt/airflow
