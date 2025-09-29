@@ -1,25 +1,15 @@
 #!/usr/bin/env bash
 
-CWD="$(pwd)"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-cd "${SCRIPT_DIR}"
+cd "${SCRIPT_DIR}" && echo "🛈  CWD: ${PWD}"
 
-set -a
-source ../.env
-source .env
-set +a
+. ./envars.sh
 
-KAFKA_HOME=${SCRIPT_DIR}
-
-CLIENTS_HOME="${KAFKA_HOME}/clients"
-CA_HOME="$(realpath -s "${KAFKA_HOME}/ca")"
-export CA_HOME=${CA_HOME}
-KAFKA_CA_CONFIG_FILE="${CA_HOME}/${KAFKA_CA_CONFIG_FILE}"
-echo "KAFKA_CA_CONFIG_FILE: ${KAFKA_CA_CONFIG_FILE}"
-ca_cert_file="${CA_HOME}/cacert.pem"
+KAFKA_CLIENTS_HOME='./clients'
 
 
 ###############################################################################
+
 
 function rmdir_if_empty() {
   dir=$1
@@ -33,14 +23,22 @@ function rmdir_if_empty() {
   fi  
 }
 
-# CA -->
-"${CA_HOME}/clean.sh"
-# <-- CA
+
+###############################################################################
+
+
+cat <<EOF
+#
+# KAFKA - cleaning ....
+#
+EOF
+
+echo "🛈  CWD: ${PWD}"
 
 for i in `seq ${KAFKA_NUM_BROKERS}`; do
 
   node_name="${DOCKER_NAMESPACE}${KAFKA_BROKER_PREFIX}${i}"
-  node_dir="${KAFKA_HOME}/volumes/${node_name}"
+  node_dir="./volumes/${node_name}"
   secrets_dir="${node_dir}/secrets"
   keystore_file="${secrets_dir}/${KAFKA_SSL_KEYSTORE_FILENAME}"
   keystore_password_file="${secrets_dir}/${KAFKA_SSL_KEYSTORE_CREDENTIALS}"
@@ -68,4 +66,4 @@ done
 rm -rfv ${KAFKA_SSL_TRUSTSTORE_FILENAME}
 rm -rfv ${KAFKA_SSL_TRUSTSTORE_CREDENTIALS}
 
-"${CLIENTS_HOME}/clean.sh"
+"${KAFKA_CLIENTS_HOME}/clean.sh"

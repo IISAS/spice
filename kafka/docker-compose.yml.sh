@@ -19,6 +19,9 @@ function get_KAFKA_CONROLLER_QUORUM_VOTERS() {
 
 KAFKA_HOME=${SCRIPT_DIR}
 KAFKA_CONTROLLER_QUORUM_VOTERS=$(get_KAFKA_CONROLLER_QUORUM_VOTERS)
+KAFKA_CLUSTER_ID=${KAFKA_CLUSTER_ID:-$(./cluster-id.py)}
+
+CA_ROOT=$(realpath -s "${KAFKA_HOME}/../ca")
 
 
 ###############################################################################
@@ -29,6 +32,9 @@ function provision_controller_service() {
   controller_id=$2
   cat <<EOF
   ${KAFKA_CONTROLLER_PREFIX}${controller_id}:
+    profiles:
+      - kafka
+      - kafka-controllers
     image: ${KAFKA_IMAGE}
     container_name: ${DOCKER_NAMESPACE}${KAFKA_CONTROLLER_PREFIX}${controller_id}
     environment:
@@ -55,11 +61,14 @@ function provision_broker_service() {
   broker_name="${DOCKER_NAMESPACE}${KAFKA_BROKER_PREFIX}${broker_id}"
   cat <<EOF
   ${KAFKA_BROKER_PREFIX}${broker_id}:
+    profiles:
+      - kafka
+      - kafka-brokers
     image: ${KAFKA_IMAGE}
     hostname: ${broker_name}.${HOSTNAME}
     container_name: ${broker_name}
     volumes:
-      - ${KAFKA_HOME}/volumes/${broker_name}/secrets:/etc/kafka/secrets
+      - ${CA_ROOT}/certs/${broker_name}/secrets:/etc/kafka/secrets
     environment:
       KAFKA_NODE_ID: ${node_id}
       KAFKA_PROCESS_ROLES: 'broker'

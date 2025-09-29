@@ -1,9 +1,12 @@
 services:
   # Domino REST Api
   domino-rest:
+    profiles:
+      - airflow
+      - domino
     # image: ghcr.io/tauffer-consulting/domino-rest:latest
     build:
-      context: ${DOMINO_HOME:-./domino}/rest
+      context: https://github.com/IISAS/domino.git#spice-airflow-3.0.6:rest
       dockerfile: Dockerfile
     container_name: "${DOCKER_NAMESPACE}domino-rest"
     labels:
@@ -38,7 +41,6 @@ services:
       - airflow-network
       - domino-network
     volumes:
-      - ${DOMINO_HOME:-./domino}/rest/:/rest # Enable hot reload for backend
       - ${AIRFLOW_PROJ_DIR:-../airflow}/dags:/opt/airflow/dags
     depends_on:
       airflow-apiserver:
@@ -48,6 +50,8 @@ services:
 
   # Domino Postgres
   domino-postgres:
+    profiles:
+      - domino
     image: postgres:13
     container_name: "${DOCKER_NAMESPACE}domino-postgres"
     environment:
@@ -72,10 +76,12 @@ services:
 
   # Domino Frontend
   domino-frontend:
+    profiles:
+      - domino
     #image: ghcr.io/tauffer-consulting/domino-frontend:compose
     build:
-      context: ${DOMINO_HOME:-./domino}/frontend
-      dockerfile: Dockerfile.dev
+      context: https://github.com/IISAS/domino.git#spice-airflow-3.0.6:frontend
+      dockerfile: Dockerfile.prod
     container_name: "${DOCKER_NAMESPACE}domino-frontend"
     labels:
       - "traefik.enable=true"
@@ -84,15 +90,11 @@ services:
       - "traefik.http.routers.${DOCKER_NAMESPACE}domino-frontend.entrypoints=${TRAEFIK_ENTRYPOINT_WEBSECURE}"
       - "traefik.http.routers.${DOCKER_NAMESPACE}domino-frontend.rule=Host(`${NAME}.${HOSTNAME}`) && PathPrefix(`/domino`)"
       - "traefik.http.routers.${DOCKER_NAMESPACE}domino-frontend.service=${DOCKER_NAMESPACE}domino-frontend"
-      - "traefik.http.services.${DOCKER_NAMESPACE}domino-frontend.loadbalancer.server.url=http://${DOCKER_NAMESPACE}domino-frontend:3000"
-    command: pnpm debug
+      - "traefik.http.services.${DOCKER_NAMESPACE}domino-frontend.loadbalancer.server.url=http://${DOCKER_NAMESPACE}domino-frontend:80"
     environment:
       - DOMINO_DEPLOY_MODE=${DOMINO_DEPLOY_MODE:-local-compose}
       - API_URL=https://${NAME}.${HOSTNAME}/domino-rest
       - BASENAME=/domino
-    volumes:
-      - ${DOMINO_HOME:-./domino}/frontend:/usr/src/app
-      - /usr/src/app/node_modules
     networks:
       - traefik-network
       - domino-network
@@ -102,6 +104,8 @@ services:
 
   # Domino Docker Proxy
   docker-proxy:
+    profiles:
+      - domino
     image: alpine/socat
     container_name: "${DOCKER_NAMESPACE}domino-docker-proxy"
     command: "TCP4-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock"

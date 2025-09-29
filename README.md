@@ -19,3 +19,9 @@ Adjust and run the following script to create a new topic and thus test the depl
 ```bash
 bin/kafka-topics.sh --create --topic new-topic --bootstrap-server spice-iisas-kafka-broker-3.${HOSTNAME}:9093 --command-config kafka/clients/spice-iisas-client-alpha/client.properties 
 ```
+
+### Kafka
+Generate docker-compose.yml for Kafka deployment:
+```bash
+./kafka/docker-compose.yml.sh > ./kafka/docker-compose.yml
+```

@@ -49,10 +49,12 @@ x-airflow-common:
   # In order to add custom dependencies or upgrade provider distributions you can use your extended image.
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
+  profiles:
+    - airflow
   #image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:3.0.6}
   build:
-    context: "${DOMINO_HOME}"
-    dockerfile: "${AIRFLOW_DOCKERFILE}"
+    context: "${AIRFLOW_PROJ_DIR:-.}"
+    dockerfile: "${AIRFLOW_DOCKERFILE:-Dockerfile-airflow-domino}"
   environment:
     &airflow-common-env
     # AIRFLOW__API__BASE_URL: "https://${NAME}.${HOSTNAME}/airflow"
@@ -85,8 +87,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${LOCAL_DOMINO_SHARED_DATA_PATH}:/home/shared_storage
-    - ${DOMINO_HOME:-.}/src/domino/:/opt/airflow/domino/domino_py/src/domino # Hot reload domino package - remove in production
-  user: "${AIRFLOW_UID:-50000}:0"
+  user: ${AIRFLOW_UID:-50000}:0
   depends_on:
     &airflow-common-depends-on
     redis:
@@ -380,8 +381,8 @@ services:
       - "traefik.http.routers.${DOCKER_NAMESPACE}airflow-flower.service=${DOCKER_NAMESPACE}airflow-flower"
       - "traefik.http.services.${DOCKER_NAMESPACE}airflow-flower.loadbalancer.server.url=http://${DOCKER_NAMESPACE}airflow-flower:5555"
     command: celery flower --url-prefix=flower --basic-auth=user1:password1,user2:password2
-    #hostname: ${DOCKER_NAMESPACE}airflow-flower
     profiles:
+      - airflow
       - flower
     healthcheck:
       test: ["CMD", "curl", "--fail", "-u", "user1:password1", "http://localhost:5555/flower/"]

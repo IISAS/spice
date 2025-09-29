@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./cmd.sh logs -f
+./cmd.sh --profile kafka --profile airflow --profile domino logs -f

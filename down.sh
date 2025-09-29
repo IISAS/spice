@@ -1,2 +1,6 @@
 #!/usr/bin/env bash
-./cmd.sh down
+./cmd.sh \
+  --profile kafka \
+  --profile airflow \
+  --profile domino \
+  down

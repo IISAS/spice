@@ -1,22 +1,20 @@
 #!/usr/bin/env bash
 
-CWD="$(pwd)"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-cd "${SCRIPT_DIR}"
+cd "${SCRIPT_DIR}" && echo "🛈  CWD: ${PWD}"
 
-set -a
-source ../.env
-source .env
-set +a
+. ./envars.sh
+
+CA_ROOT='../ca'
+CA_HOME="${CA_ROOT}/ca_home"
 
 KAFKA_HOME=${SCRIPT_DIR}
+KAFKA_CLIENTS_HOME='./clients'
 
-CLIENTS_HOME="${KAFKA_HOME}/clients"
-CA_HOME="$(realpath -s './ca')"
+export CA_ROOT=${CA_ROOT}
 export CA_HOME=${CA_HOME}
-KAFKA_CA_CONFIG_FILE="${CA_HOME}/${KAFKA_CA_CONFIG_FILE}"
-echo "KAFKA_CA_CONFIG_FILE: ${KAFKA_CA_CONFIG_FILE}"
-ca_cert_file="${CA_HOME}/cacert.pem"
+
+ca_cert_file="/ca/cacert.pem"
 
 
 ###############################################################################
@@ -30,7 +28,7 @@ function import_cert() {
   storepass=$4
   keypass=${5:-}  # Default to empty string if no 5th argument
 
-  cmd=(keytool \
+  cmd=(${CA_ROOT}/ca.sh keytool \
     -importcert \
     -keystore "${keystore}" \
     -file "${file}" \
@@ -63,7 +61,7 @@ function create_csr() {
     return 0
   fi
 
-  keytool \
+  ${CA_ROOT}/ca.sh keytool \
     -certreq \
     -keystore "${keystore}" \
     -file "${file}" \
@@ -72,10 +70,10 @@ function create_csr() {
     -keypass "${keypass}" \
     -storetype PKCS12
 
-  if [ -f "$file" ]; then
-    echo "✅ CSR created: $file"
+  if [ -f "${CA_ROOT}/$file" ]; then
+    echo "✅ CSR created: ${CA_ROOT}/$file"
   else
-    echo "❌ could not create CSR: $file"
+    echo "❌ could not create CSR: ${CA_ROOT}/$file"
     return 1
   fi
 
@@ -85,48 +83,55 @@ function create_csr() {
 
 function sign_csr() {
   
-  config=$1
-  csr=$2
-  out=$3
-  days=$4
+  csr=$1
+  out=$2
+  days=$3
   
   if [ -f "$out" ]; then
     echo "⚠️  certificate already exists: $out"
     return 0
   fi
 
-  openssl ca -batch -config "${config}" -policy signing_policy -extensions signing_req -days ${days} -in "${csr}" -out "${out}"
+  ${CA_ROOT}/ca.sh openssl ca -batch -config /etc/ssl/openssl.cnf -policy signing_policy -extensions signing_req -days ${days} -in "${csr}" -out "${out}"
 
-  if [ -f "${out}" ]; then
+  if [ -f "${CA_ROOT}/${out}" ]; then
     echo "✅ certificate signed: ${out}"
     return 0
   fi
     
-  [ ! -f "${out}" ] && { echo "❌ signed certificate not found after signing CSR: ${out}"; return 1; }
+  [ ! -f "${CA_ROOT}/${out}" ] && { echo "❌ signed certificate not found after signing CSR: ${CA_ROOT}/${out}"; return 1; }
 
   return 0
 }
 
 
-###############################################################################
+function clean_path() {
+  path=$1
+  echo "$path" | sed 's#//*#/#g'
+  return 0
+}
 
-"${CA_HOME}/create.sh"
+###############################################################################
 
 ./docker-compose.yml.sh > docker-compose.yml
 
 truststores=()
-common_truststore_filename="${KAFKA_HOME}/${KAFKA_SSL_TRUSTSTORE_FILENAME}"
-common_truststore_password_file="${KAFKA_HOME}/${KAFKA_SSL_TRUSTSTORE_CREDENTIALS}"
+common_truststore_filename="/certs/${KAFKA_SSL_TRUSTSTORE_FILENAME}"
+common_truststore_filename_host=$(clean_path "${CA_ROOT}/${common_truststore_filename}")
+
+common_truststore_password_file="/certs/${KAFKA_SSL_TRUSTSTORE_CREDENTIALS}"
+common_truststore_password_file_host=$(clean_path "${CA_ROOT}/${common_truststore_password_file}")
+
  
 # store truststore password in a file
-if [ ! -f "${common_truststore_password_file}" ]; then
-  echo ${KAFKA_SSL_TRUSTSTORE_PASSWORD} > "${common_truststore_password_file}"
+if [ ! -f "${common_truststore_password_file_host}" ]; then
+  echo ${KAFKA_SSL_TRUSTSTORE_PASSWORD} > "${common_truststore_password_file_host}"
 else
-  echo "⚠️  truststore password file already exists: ${common_truststore_password_file}"
+  echo "⚠️  truststore password file already exists: ${common_truststore_password_file_host}"
 fi
 
 # reload passwords from the disk
-read -r KAFKA_SSL_TRUSTSTORE_PASSWORD < "$common_truststore_password_file"
+read -r KAFKA_SSL_TRUSTSTORE_PASSWORD < "${common_truststore_password_file_host}"
 
 # add CARoot cert into the global truststore
 import_cert "${common_truststore_filename}" "${ca_cert_file}" 'CARoot' "${KAFKA_SSL_TRUSTSTORE_PASSWORD}"
@@ -138,49 +143,51 @@ for i in `seq ${KAFKA_NUM_BROKERS}`; do
 
   echo -e "\n### ${node_name} ###\n"
   
-  secrets_dir="${KAFKA_HOME}/volumes/${node_name}/secrets"
+  secrets_dir="/certs/${node_name}/secrets"
+  secrets_dir_host=$(clean_path "${CA_ROOT}/${secrets_dir}")
   keystore_file="${secrets_dir}/${KAFKA_SSL_KEYSTORE_FILENAME}"
   keystore_password_file="${secrets_dir}/${KAFKA_SSL_KEYSTORE_CREDENTIALS}"
   keystore_ssl_key_file="${secrets_dir}/${KAFKA_SSL_KEY_CREDENTIALS}"
   truststore_file="${secrets_dir}/${KAFKA_SSL_TRUSTSTORE_FILENAME}"
+  truststore_file_host=$(clean_path "${CA_ROOT}/${truststore_file}")
   private_key_csr_file="${secrets_dir}/csr.pem"
   signed_private_key_cert_file="${secrets_dir}/cert.pem"
   private_key_validity_days=3650
   private_key_cert_validity_days=3650
  
-  # create broker's secrets dir to store keystore and truststore
-  mkdir -p "${secrets_dir}"
+  # create broker's secrets dir at host to store keystore and truststore
+  mkdir -p "${CA_ROOT}/${secrets_dir}"
 
   # store keystore password in a file
-  if [ ! -f "${keystore_password_file}" ]; then
-    echo ${KAFKA_SSL_KEYSTORE_PASSWORD} > "${keystore_password_file}"
+  if [ ! -f "${CA_ROOT}/${keystore_password_file}" ]; then
+    echo ${KAFKA_SSL_KEYSTORE_PASSWORD} > "${CA_ROOT}/${keystore_password_file}"
   else
-    echo "⚠️  keystore password file already exists: ${keystore_password_file}"
+    echo "⚠️  keystore password file already exists: ${CA_ROOT}/${keystore_password_file}"
   fi
 
   # store SSL key in a file
-  if [ ! -f "${keystore_sll_key_file}" ]; then
-    echo ${KAFKA_SSL_KEY_PASSWORD} > "${keystore_ssl_key_file}"
+  if [ ! -f "${CA_ROOT}/${keystore_sll_key_file}" ]; then
+    echo ${KAFKA_SSL_KEY_PASSWORD} > "${CA_ROOT}/${keystore_ssl_key_file}"
   else
-    echo "⚠️  keystore ssl key file already exists: ${keystore_ssl_key_file}"
+    echo "⚠️  keystore ssl key file already exists: ${CA_ROOT}/${keystore_ssl_key_file}"
   fi
 
   # reload passwords from the disk
-  read -r KAFKA_SSL_KEYSTORE_PASSWORD < "$keystore_password_file"
-  read -r KAFKA_SSL_KEY_PASSWORD < "$keystore_ssl_key_file"
+  read -r KAFKA_SSL_KEYSTORE_PASSWORD < "${CA_ROOT}/$keystore_password_file"
+  read -r KAFKA_SSL_KEY_PASSWORD < "${CA_ROOT}/$keystore_ssl_key_file"
 
   # create keystore with a private key
   if [ ! -f "${keystore_file}" ]; then
-    keytool\
+    ${CA_ROOT}/ca.sh keytool \
+      -genkeypair \
       -keystore "${keystore_file}" \
       -alias "${node_name}" \
       -validity ${private_key_validity_days} \
-      -genkey \
       -keyalg RSA \
       -storetype pkcs12 \
       -storepass "${KAFKA_SSL_KEYSTORE_PASSWORD}" \
       -keypass "${KAFKA_SSL_KEY_PASSWORD}" \
-      -dname "CN=${node_name}, OU=, O=, L=, ST=, C="
+      -dname "CN=${node_name}"
       [[ $? ]] || { echo "✅ keystore created: ${keystore_file}"; }
   else
     echo "⚠️  keystore already exists: ${keystore_file}"
@@ -190,7 +197,7 @@ for i in `seq ${KAFKA_NUM_BROKERS}`; do
   # create private key CSR
   create_csr "${keystore_file}" "${private_key_csr_file}" "${node_name}" "${KAFKA_SSL_KEYSTORE_PASSWORD}" "${KAFKA_SSL_KEY_PASSWORD}"
   # sign private key CSR
-  sign_csr "${KAFKA_CA_CONFIG_FILE}" "${private_key_csr_file}" "${signed_private_key_cert_file}" ${private_key_cert_validity_days}
+  sign_csr "${private_key_csr_file}" "${signed_private_key_cert_file}" ${private_key_cert_validity_days}
   # import CA into the keystore
   import_cert "${keystore_file}" "${ca_cert_file}" 'CARoot' "${KAFKA_SSL_KEYSTORE_PASSWORD}" "${KAFKA_SSL_KEY_PASSWORD}"
   # import signed private key certificate
@@ -198,15 +205,16 @@ for i in `seq ${KAFKA_NUM_BROKERS}`; do
   # import signed private key certificate into the common truststore
   import_cert "${common_truststore_filename}" "${signed_private_key_cert_file}" "${node_name}" "${KAFKA_SSL_TRUSTSTORE_PASSWORD}"
   # copy common truststore credentials
-  cp -v "${common_truststore_password_file}" "${secrets_dir}"
-  truststores+=("${truststore_file}")
+  mkdir -p "./volumes/${node_name}/secrets"
+  cp -v "${common_truststore_password_file_host}" "${secrets_dir_host}"
+  truststores+=("${truststore_file_host}")
 
 done
 
 echo "copying trustore to Kafka nodes..."
 
 for truststore in "${truststores[@]}"; do
-  cp -v "${common_truststore_filename}" "${truststore}"
+  cp -v "${common_truststore_filename_host}" "${truststore}"
 done
 
-"${CLIENTS_HOME}/provision.sh"
+#"${KAFKA_CLIENTS_HOME}/provision.sh"
