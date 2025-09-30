@@ -1,10 +1,6 @@
 services:
   # Domino REST Api
   domino-rest:
-    profiles:
-      - airflow
-      - domino
-    # image: ghcr.io/tauffer-consulting/domino-rest:latest
     build:
       context: https://github.com/IISAS/domino.git#spice-airflow-3.0.6:rest
       dockerfile: Dockerfile
@@ -50,8 +46,6 @@ services:
 
   # Domino Postgres
   domino-postgres:
-    profiles:
-      - domino
     image: postgres:13
     container_name: "${DOCKER_NAMESPACE}domino-postgres"
     environment:
@@ -76,9 +70,6 @@ services:
 
   # Domino Frontend
   domino-frontend:
-    profiles:
-      - domino
-    #image: ghcr.io/tauffer-consulting/domino-frontend:compose
     build:
       context: https://github.com/IISAS/domino.git#spice-airflow-3.0.6:frontend
       dockerfile: Dockerfile.prod
@@ -104,8 +95,6 @@ services:
 
   # Domino Docker Proxy
   docker-proxy:
-    profiles:
-      - domino
     image: alpine/socat
     container_name: "${DOCKER_NAMESPACE}domino-docker-proxy"
     command: "TCP4-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock"
