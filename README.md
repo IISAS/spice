@@ -1,5 +1,13 @@
 # SPICE
 
+This is a docker compose deployment of SPICE services:
+
+* Domino (forked and adjusted latest version of Domino to work with Apache Airflow v3.0.6) - https://github.com/iisas/domino
+* Apache Airflow v3.0.6 - https://github.com/apache/airflow/tree/3.0.6
+* Apache Kafka v4.0.0 - https://github.com/apache/kafka/tree/4.0.0
+
+Domino pieces repository for SPICE is available here: https://github.com/IISAS/spice_domino_pieces
+
 ## Deployment
 
 ### Prerequisities
