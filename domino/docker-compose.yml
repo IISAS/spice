@@ -30,7 +30,7 @@ services:
       - DOMINO_DEPLOY_MODE=${DOMINO_DEPLOY_MODE:-local-compose}
       - AIRFLOW_API_HOST=http://${DOCKER_NAMESPACE}airflow-apiserver:8080/airflow
       - AIRFLOW_ADMIN_USERNAME=${_AIRFLOW_WWW_USER_USERNAME:-admin}
-      - AIRFLOW_ADMIN_PASSWORD=${_AIRFLOW_WWW_USER_PASSWORD:-admin}
+      - AIRFLOW_ADMIN_PASSWORD=${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
     networks:
       - traefik-network
       - domino-postgres-network
