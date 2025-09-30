@@ -49,9 +49,6 @@ x-airflow-common:
   # In order to add custom dependencies or upgrade provider distributions you can use your extended image.
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
-  profiles:
-    - airflow
-  #image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:3.0.6}
   build:
     context: "${AIRFLOW_PROJ_DIR:-.}"
     dockerfile: "${AIRFLOW_DOCKERFILE:-Dockerfile-airflow-domino}"
@@ -381,9 +378,6 @@ services:
       - "traefik.http.routers.${DOCKER_NAMESPACE}airflow-flower.service=${DOCKER_NAMESPACE}airflow-flower"
       - "traefik.http.services.${DOCKER_NAMESPACE}airflow-flower.loadbalancer.server.url=http://${DOCKER_NAMESPACE}airflow-flower:5555"
     command: celery flower --url-prefix=flower --basic-auth=user1:password1,user2:password2
-    profiles:
-      - airflow
-      - flower
     healthcheck:
       test: ["CMD", "curl", "--fail", "-u", "user1:password1", "http://localhost:5555/flower/"]
       interval: 30s
