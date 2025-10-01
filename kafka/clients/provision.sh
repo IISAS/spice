@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
 
-CWD="$(pwd)"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-cd "${SCRIPT_DIR}"
+cd "${SCRIPT_DIR}" && echo "🛈  CWD: ${PWD}"
 
-set -a
-source .env
-set +a
+. ./envars.sh
 
-CLIENTS_HOME=${SCRIPT_DIR}
-echo "CLIENTS_HOME: ${CLIENTS_HOME}"
+CA_ROOT="$(realpath '../../ca')"
+CA_HOME="${CA_ROOT}/ca_home"
+CLIENTS_HOME="${SCRIPT_DIR}"
 KAFKA_HOME="${CLIENTS_HOME}/.."
-echo "KAFKA_HOME: ${KAFKA_HOME}"
-if [ -z "${CA_HOME}" ]; then
-  CA_HOME="$(realpath -s "${KAFKA_HOME}/ca")"
-  export CA_HOME=${CA_HOME}
-fi
-echo "CA_HOME: ${CA_HOME}"
-KAFKA_CA_CONFIG_FILE="${CA_HOME}/${KAFKA_CA_CONFIG_FILE}"
-echo "KAFKA_CA_CONFIG_FILE: ${KAFKA_CA_CONFIG_FILE}"
-ca_cert_file="${CA_HOME}/cacert.pem"
 
+#export CA_ROOT=${CA_ROOT}
+#export CA_HOME=${CA_HOME}
+
+ca_cert_file="/ca/cacert.pem"
 
 ###############################################################################
+
+
+function clean_path() {
+  path=$1
+  echo "$path" | sed 's#//*#/#g'
+  return 0
+}
 
 
 function mkdir_chck() {
@@ -42,7 +42,7 @@ function create_credentials() {
 
   if [ -f "${filename}" ]; then
     echo "⚠️  credentials already exist and will be reused: ${filename}"
-    return 0
+    return 1
   fi
   
   echo "${password}" > "${filename}"
@@ -59,133 +59,116 @@ function create_credentials() {
 function create_keystore() {
 
   keystore="$1"
-  keystore_credentials="$2"
-  alias="$3"
-  CN="$4"
-  validity=$5
+  alias="$2"
+  CN="$3"
+  validity=$4
+  storepass="$5"
+  keypass="${6:-}"
 
-  if [ -f "${keystore}" ]; then
-    echo "⚠️  keystore alredy exists: ${keystore}"
-    return 0
+  if [ -f "${CA_ROOT}/${keystore}" ]; then
+    echo "⚠️  keystore already exists (skipping): ${keystore}"
+    return 1
   fi
 
-  if [ ! -f "${keystore_credentials}" ]; then
-    echo "❌ keystore credentials not found: ${keystore_credentials}"
-  else
-    read -r storepass < "${keystore_credentials}"
-    echo "creating client keystore: ${keystore}"
-    keytool \
-      -keystore "${keystore}" \
-      -alias "${alias}" \
-      -validity ${validity} \
-      -genkey \
-      -keyalg RSA \
-      -storetype pkcs12 \
-      -storepass "${storepass}" \
-      -dname "CN=${CN}, OU=, O=, L=, ST=, C="
-    if [ -f "${keystore}" ]; then
-      echo "✅ keystore created: ${keystore}"
-      return 0
-    fi
+  echo "creating keystore: ${keystore}"
+    
+  cmd=(${CA_ROOT}/ca.sh keytool \
+    -genkeypair \
+    -keystore "${keystore}" \
+    -alias "${alias}" \
+    -validity ${validity} \
+    -keyalg RSA \
+    -storetype pkcs12 \
+    -storepass "${storepass}" \
+    -dname "CN=${CN}")
+    
+  # Add -keypass only if provided (non-empty)
+  if [[ -n $keypass ]]; then
+    cmd+=(-keypass "$keypass")
   fi
 
-  echo "❌ keystore not created: ${keystore}"
-  return 1
+  "${cmd[@]}"
+
+  if [ ! -f "${CA_ROOT}/${keystore}" ]; then
+    echo "❌ keystore not created: ${keystore}"
+    return 1
+  fi
+
+  echo "✅ keystore created: ${keystore}"
+  return 0
 }
 
 
 function create_csr() {
 
-  keystore=$1
-  keystore_credentials=$2
-  file=$3
-  alias=$4
-  keypass=${5:-}
+  keystore="$1"
+  file="$2"
+  alias="$3"
+  storepass="$4"
+  keypass="${5:-}"
 
-  if [ -f "$file" ]; then
+  if [ -f "${CA_ROOT}/$file" ]; then
     echo "⚠️  CSR already exists: $file"
-    return 0
+    return 1
   fi
 
-  if [ ! -f "${keystore_credentials}" ]; then
-    echo "❌ keystore credentials not found: ${keystore_credentials}"
-  else
-    # read storepass from a file
-    read -r storepass < "$keystore_credentials"
+  cmd=(${CA_ROOT}/ca.sh keytool \
+    -certreq \
+    -keystore "${keystore}" \
+    -file "${file}" \
+    -alias "${alias}" \
+    -storepass "${storepass}" \
+    -storetype PKCS12)
 
-    cmd=(keytool \
-      -certreq \
-      -keystore "${keystore}" \
-      -file "${file}" \
-      -alias "${alias}" \
-      -storepass "${storepass}" \
-      -storetype PKCS12)
-
-    # Add -keypass only if provided (non-empty)
-    if [[ -n $keypass ]]; then
-      cmd+=(-keypass "$keypass")
-    fi
-
-    "${cmd[@]}"
-
-    if [ -f "$file" ]; then
-      echo "✅ CSR created: $file"
-      return 0
-    fi
+  if [[ -n ${keypass} ]]; then
+    cmd+=(-keypass "${keypass}")
   fi
-  
-  echo "❌ could not create CSR: $file"
-  return 1
+
+  "${cmd[@]}"
+
+  if [ ! -f "${CA_ROOT}/$file" ]; then
+    echo "❌ could not create CSR: $file"
+    return 1
+  fi
+
+  echo "✅ CSR created: $file"
+  return 0
 }
   
 
 function sign_csr() {
-  
-  config=$1
-  csr=$2
-  out=$3
-  days=$4
-  
-  if [ -f "$out" ]; then
+
+  csr=$1
+  out=$2
+  days=$3
+
+  out_host=$(clean_path "${CA_ROOT}/${out}")
+
+  if [ -f "${out_host}" ]; then
     echo "⚠️  certificate already exists: $out"
-    return 0
-  fi  
+    return 1
+  fi
 
-  cd "${CA_HOME}"
-  openssl \
-    ca \
-    -batch \
-    -config "${config}" \
-    -policy signing_policy \
-    -extensions signing_req \
-    -days ${days} \
-    -in "${csr}" \
-    -out "${out}"
+  ${CA_ROOT}/ca.sh openssl ca -batch -config /etc/ssl/openssl.cnf -policy signing_policy -extensions signing_req -days ${days} -in "${csr}" -out "${out}"
 
-  if [ -f "${out}" ]; then
-    echo "✅ certificate signed: ${out}"
-    return 0
-  fi  
-    
-  echo "❌ signed certificate not found after signing CSR: ${out}"
-  return 1
+  if [ ! -f "${out_host}" ]; then
+    echo "❌ signed certificate not found after signing CSR: ${out}"
+    return 1
+  fi
+
+  echo "✅ certificate signed: ${out}"
+  return 0
 }
 
 
 function generate_client_properties () {
 
   truststore_location="$1"
-  truststore_credentials="$2"
+  truststore_password="$2"
   keystore_location="$3"
-  keystore_credentials="$4"
+  keystore_password="$4"
   key_password="${5:-}"
   
-  [ ! -f "${truststore_credentials}" ] && { echo "❌ truststore credentials found: ${truststore_credentials}"; return 1; }
-  read -r truststore_password < "${truststore_credentials}"
-
-  [ ! -f "${keystore_credentials}" ] && { echo "❌ keystore credentials found: ${keystore_credentials}"; return 1; }
-  read -r keystore_password < "${keystore_credentials}"
-
   cat <<EOF
 security.protocol=SSL
 ssl.endpoint.identification.algorithm=
@@ -206,79 +189,99 @@ function import_cert() {
   keystore=$1
   file=$2
   alias=$3
-  keystore_credentials=$4
+  storepass=$4
   keypass=${5:-}  # Default to empty string if no 5th argument
- 
-  if [ ! -f "${keystore_credentials}" ]; then
-    echo "❌ keystore credentials found: ${keystore_credentials}"
-  else
-    read -r storepass < "${keystore_credentials}"
 
-    cmd=(keytool \
-      -importcert \
-      -keystore "${keystore}" \
-      -file "${file}" \
-      -alias ${alias} \
-      -storepass "${storepass}" \
-      -noprompt)
+  cmd=(${CA_ROOT}/ca.sh keytool \
+    -importcert \
+    -keystore "${keystore}" \
+    -file "${file}" \
+    -alias ${alias} \
+    -storepass "${storepass}" \
+    -noprompt)
 
-    # Add -keypass only if provided (non-empty)
-    if [[ -n $keypass ]]; then
-      cmd+=(-keypass "$keypass")
-    fi  
-
-    "${cmd[@]}"
-    if (( $? == 0 )); then
-      echo "✅ cert ${file} imported into ${keystore}"
-      return 0
-    fi
+  # Add -keypass only if provided (non-empty)
+  if [[ -n $keypass ]]; then
+    cmd+=(-keypass "$keypass")
   fi
 
-  echo "❌ cert ${file} not imported into ${keystore}"
-  return 1
+  "${cmd[@]}"
+
+  (( $? != 0 )) && { echo "❌ cert ${file} not imported into ${keystore}"; return 1; }
+
+  echo "✅ cert ${file} imported into ${keystore}"
+  return 0
 }
 
 
 function provision_client() {
 
-  client_name="$1"  
+  client_name_short="$1"  
   storepass="$2"
   validity="${3:-365}"
  
-  client_name="${DOCKER_NAMESPACE}${KAFKA_CLIENT_PREFIX}${client_name}"
-  client_dir="${CLIENTS_HOME}/${client_name}"
-  secrets_dir="${client_dir}/secrets"
+  client_name="${DOCKER_NAMESPACE}${KAFKA_CLIENT_PREFIX}${client_name_short}"
+  client_dir_host="${CLIENTS_HOME}/${client_name}"
+
+  secrets_dir="/certs/_clients_/${client_name}/secrets"
+  secrets_dir_host=$(clean_path "${CA_ROOT}/${secrets_dir}")
 
   keystore_file="${secrets_dir}/keystore.jks"
+  keystore_file_host=$(clean_path "${CA_ROOT}/${keystore_file}")
   keystore_credentials="${secrets_dir}/keystore_creds"
+  keystore_credentials_host=$(clean_path "${CA_ROOT}/${keystore_credentials}")
+
   csr_file="${secrets_dir}/csr.pem"
   signed_cert_file="${secrets_dir}/cert.pem"
 
-  truststore_file="${secrets_dir}/truststore.jks"
-  truststore_credentials="${secrets_dir}/truststore_creds"
+  truststore_file="/certs/truststore.jks"
+  truststore_file_host=$(clean_path "${CA_ROOT}/${truststore_file}")
+  truststore_credentials="/certs/truststore_creds"
+  truststore_credentials_host=$(clean_path "${CA_ROOT}/${truststore_credentials}")
 
   printf "\nprovisioning client: %s\n" "${client_name}"
 
-  mkdir_chck "${client_dir}"
-  mkdir_chck "${secrets_dir}"
+  mkdir_chck "${client_dir_host}"
+  mkdir_chck "${secrets_dir_host}"
 
-  cd "${client_dir}"
+  create_credentials "${keystore_credentials_host}" "${storepass}"
+  read -r storepass < "${keystore_credentials_host}"
 
-  create_credentials "${keystore_credentials}" "${storepass}" || return 1
-  create_keystore "${keystore_file}" "${keystore_credentials}" "${client_name}" "${client_name}" ${validity} || return 1
-  create_csr "${keystore_file}" "${keystore_credentials}" "${csr_file}" "${client_name}" || return 1
-  sign_csr "${KAFKA_CA_CONFIG_FILE}" "${csr_file}" "${signed_cert_file}" "${validity}" || return 1
-  import_cert "${keystore_file}" "${ca_cert_file}" "CARoot" "${keystore_credentials}" || return 1
-  import_cert "${keystore_file}" "${signed_cert_file}" "${client_name}" "${keystore_credentials}" || return 1
+  create_keystore "${keystore_file}" "${client_name}" "${client_name}" ${validity} "${storepass}" &&
+  create_csr "${keystore_file}" "${csr_file}" "${client_name}" "${storepass}" &&
+  sign_csr "${csr_file}" "${signed_cert_file}" "${validity}" &&
+  import_cert "${keystore_file}" "${ca_cert_file}" "CARoot" "${storepass}" &&
+  import_cert "${keystore_file}" "${signed_cert_file}" "${client_name}" "${storepass}"
 
-  cp -v "${KAFKA_HOME}/truststore_creds" "${secrets_dir}/"
-  cp -v "${KAFKA_HOME}/truststore.jks" "${secrets_dir}/"
+  echo "copying certificates to client's dir ..."
+  cp -v ${secrets_dir_host}/* "${client_dir_host}/"
+  cp -v $(clean_path "${CA_HOME}/cacert.pem") "${client_dir_host}/"
+  keystore_file_client="${secrets_dir_host}/keystore.jks"
+  keystore_credentials_client="${secrets_dir_host}/keystore_creds"
+  truststore_file_client="${secrets_dir_host}/truststore.jks"
+  truststore_credentials_client="${secrets_dir_host}/truststore_creds"
+  cp -v "${truststore_file_host}" "${truststore_file_client}"
+  cp -v "${truststore_credentials_host}" "${truststore_credentials_client}"
 
+  echo "Generating client.properties ..."
+  [ ! -f "${keystore_credentials_client}" ] && { echo "❌ keystore credentials not found: ${keystore_credentials_client}"; return 1; }
+  read -r keystore_password < "${keystore_credentials_client}"
+  [ ! -f "${truststore_credentials_client}" ] && { echo "❌ truststore credentials not found: ${truststore_credentials_client}"; return 1; }
+  read -r truststore_password < "${truststore_credentials_client}"
   generate_client_properties \
-    "${truststore_file}" \
-    "${truststore_credentials}" \
-    "${keystore_file}" \
-    "${keystore_credentials}" > "${client_dir}/client.properties"
+    "/opt/client/truststore.jks" \
+    "${truststore_password}" \
+    "/opt/client/keystore.jks" \
+    "${keystore_password}" > "${client_dir_host}/client.properties"
+
+  echo "generating scripts for the client ..."
+  kafka_topics_sh_filename="kafka-topics-${client_name_short}.sh"
+  cat <<EOF > ${kafka_topics_sh_filename}
+#!/usr/bin/env bash
+
+./kafka-topics.sh "${client_dir_host}" \$*
+EOF
+  chmod +x "${kafka_topics_sh_filename}"
 
   return 0
 }

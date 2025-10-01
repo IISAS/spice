@@ -44,6 +44,7 @@ function import_cert() {
   "${cmd[@]}"
   (( $? != 0 )) && { echo "❌ cert ${file} not imported into ${keystore}"; return 1; }
 
+  echo "✅ cert ${file} imported into ${keystore}"
   return 0
 }
 
@@ -156,7 +157,7 @@ for i in `seq ${KAFKA_NUM_BROKERS}`; do
   private_key_cert_validity_days=3650
  
   # create broker's secrets dir at host to store keystore and truststore
-  mkdir -p "${CA_ROOT}/${secrets_dir}"
+  mkdir -p "${secrets_dir_host}"
 
   # store keystore password in a file
   if [ ! -f "${CA_ROOT}/${keystore_password_file}" ]; then
