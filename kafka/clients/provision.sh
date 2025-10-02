@@ -226,6 +226,7 @@ function provision_client() {
   secrets_dir="/certs/_clients_/${client_name}/secrets"
   secrets_dir_host=$(clean_path "${CA_ROOT}/${secrets_dir}")
 
+  # keystore
   keystore_file="${secrets_dir}/keystore.jks"
   keystore_file_host=$(clean_path "${CA_ROOT}/${keystore_file}")
   keystore_credentials="${secrets_dir}/keystore_creds"
@@ -234,40 +235,53 @@ function provision_client() {
   csr_file="${secrets_dir}/csr.pem"
   signed_cert_file="${secrets_dir}/cert.pem"
 
-  truststore_file="/certs/truststore.jks"
-  truststore_file_host=$(clean_path "${CA_ROOT}/${truststore_file}")
-  truststore_credentials="/certs/truststore_creds"
-  truststore_credentials_host=$(clean_path "${CA_ROOT}/${truststore_credentials}")
-
   printf "\nprovisioning client: %s\n" "${client_name}"
 
   mkdir_chck "${client_dir_host}"
   mkdir_chck "${secrets_dir_host}"
 
+  # keystore credentials
   create_credentials "${keystore_credentials_host}" "${storepass}"
-  read -r storepass < "${keystore_credentials_host}"
+  [ ! -f "${keystore_credentials_host}" ] && { echo "❌ keystore credentials not found: ${keystore_credentials_host}"; }
+  read -r keystore_password < "${keystore_credentials_host}"
 
-  create_keystore "${keystore_file}" "${client_name}" "${client_name}" ${validity} "${storepass}" &&
-  create_csr "${keystore_file}" "${csr_file}" "${client_name}" "${storepass}" &&
+  create_keystore "${keystore_file}" "${client_name}" "${client_name}" ${validity} "${keystore_password}" &&
+  create_csr "${keystore_file}" "${csr_file}" "${client_name}" "${keysstore_password}" &&
   sign_csr "${csr_file}" "${signed_cert_file}" "${validity}" &&
-  import_cert "${keystore_file}" "${ca_cert_file}" "CARoot" "${storepass}" &&
-  import_cert "${keystore_file}" "${signed_cert_file}" "${client_name}" "${storepass}"
+  import_cert "${keystore_file}" "${ca_cert_file}" "CARoot" "${keystore_password}" &&
+  import_cert "${keystore_file}" "${signed_cert_file}" "${client_name}" "${keystore_password}"
 
   echo "copying certificates to client's dir ..."
   cp -v ${secrets_dir_host}/* "${client_dir_host}/"
   cp -v $(clean_path "${CA_HOME}/cacert.pem") "${client_dir_host}/"
+  cp -v $(clean_path "${CA_ROOT}/certs/truststore.p12") "${client_dir_host}"
+
+  # copied client's keystore and its credentials location
   keystore_file_client="${secrets_dir_host}/keystore.jks"
   keystore_credentials_client="${secrets_dir_host}/keystore_creds"
+  
+  # copy global truststore to the client
+  echo "copying global truststore to the client ..."
   truststore_file_client="${secrets_dir_host}/truststore.jks"
   truststore_credentials_client="${secrets_dir_host}/truststore_creds"
   cp -v "${truststore_file_host}" "${truststore_file_client}"
   cp -v "${truststore_credentials_host}" "${truststore_credentials_client}"
 
+  echo "converting keystore from JKS to PKCS12 ..."
+  ${CA_ROOT}/ca.sh keytool -importkeystore \
+    -srckeystore "${keystore_file}" \
+    -srcstoretype JKS \
+    -srcstorepass "${keystore_password}" \
+    -destkeystore "${secrets_dir}/keystore.p12" \
+    -deststoretype PKCS12 \
+    -deststorepass "${keystore_password}" \
+    -noprompt
+  # convert PKCS12 to PEM
+  ${CA_ROOT}/ca.sh openssl pkcs12 -in "${secrets_dir}/keystore.p12" -nocerts -nodes -out "${secrets_dir}/key.pem" -passin pass:"${keystore_password}"
+  cp -v $(clean_path "${secrets_dir_host}/key.pem") "${client_dir_host}"
+  cp -v $(clean_path "${secrets_dir_host}/keystore.p12") "${client_dir_host}"
+
   echo "Generating client.properties ..."
-  [ ! -f "${keystore_credentials_client}" ] && { echo "❌ keystore credentials not found: ${keystore_credentials_client}"; return 1; }
-  read -r keystore_password < "${keystore_credentials_client}"
-  [ ! -f "${truststore_credentials_client}" ] && { echo "❌ truststore credentials not found: ${truststore_credentials_client}"; return 1; }
-  read -r truststore_password < "${truststore_credentials_client}"
   generate_client_properties \
     "/opt/client/truststore.jks" \
     "${truststore_password}" \
@@ -289,6 +303,23 @@ EOF
 
 ###############################################################################
 
+truststore_file="/certs/truststore.jks"
+truststore_file_host=$(clean_path "${CA_ROOT}/${truststore_file}")
+truststore_credentials="/certs/truststore_creds"
+truststore_credentials_host=$(clean_path "${CA_ROOT}/${truststore_credentials}")
+
+[ ! -f "${truststore_credentials_host}" ] && { echo "❌ truststore credentials not found: ${truststore_credentials_host}"; }
+read -r truststore_password < "${truststore_credentials_host}"
+
+echo "converting truststore from JKS to PKCS12 ..."
+${CA_ROOT}/ca.sh keytool -importkeystore \
+  -srckeystore "${truststore_file}" \
+  -srcstoretype JKS \
+  -srcstorepass "${truststore_password}" \
+  -destkeystore "/certs/truststore.p12" \
+  -deststoretype PKCS12 \
+  -deststorepass "${truststore_password}" \
+  -noprompt
 
 if [ -p /dev/stdin ]; then
   # Input is coming from a pipe or redirection
