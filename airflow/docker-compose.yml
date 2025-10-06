@@ -76,7 +76,7 @@ x-airflow-common:
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
     DOMINO_DEPLOY_MODE: ${DOMINO_DEPLOY_MODE}
-    DOMINO_DOCKER_PROXY: tcp://${DOCKER_NAMESPACE:-}domino-docker-proxy:2375
+    DOMINO_DOCKER_PROXY: tcp://${DOCKER_NAMESPACE:-domino-docker-proxy}:2375
     LOCAL_DOMINO_SHARED_DATA_PATH: ${LOCAL_DOMINO_SHARED_DATA_PATH}
   volumes: &airflow-common-volumes
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
